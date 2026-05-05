@@ -1,16 +1,16 @@
 # Core Data Processing
-pandas==2.2.1
-numpy==1.26.4
+pandas
+numpy
 
 # Machine Learning & AI
 --find-links https://download.pytorch.org/whl/cpu/torch_stable.html
-transformers==4.39.3
-torch==2.2.1+cpu
-accelerate==0.28.0
+transformers==4.41.2
+torch
+accelerate==0.31.0
 sentencepiece==0.2.0
 
 # User Interface
-streamlit==1.32.2
+streamlit
 
 # Utilities
-python-dotenv==1.0.1
+python-dotenv
