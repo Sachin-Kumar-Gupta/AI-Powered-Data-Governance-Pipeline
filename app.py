@@ -1,0 +1,38 @@
+import streamlit as st
+import pandas as pd
+from pipeline_engine import TransformationEngine, AIAgent
+
+st.set_page_config(page_title="Data Governance Pipeline", layout="wide")
+st.title("🚀 AI-Powered Data Governance & Insight Pipeline")
+
+# Initialize AI Agent once and cache it[cite: 2]
+@st.cache_resource
+def get_ai_agent():
+    return AIAgent()
+
+ai_agent = get_ai_agent()
+
+uploaded_file = st.file_uploader("Upload Retail/Financial Dataset (CSV)", type="csv")
+
+if uploaded_file:
+    df = pd.read_csv(uploaded_file)
+    engine = TransformationEngine(df)
+    
+    tab1, tab2, tab3 = st.tabs(["Governance Report", "Business Transformation", "AI Strategy"])
+    
+    with tab1:
+        st.subheader("📋 Data Integrity Report")
+        st.json(engine.run_integrity_check())
+        
+    with tab2:
+        st.subheader("⚙️ Transformed Data")
+        processed_df = engine.apply_business_rules()
+        st.dataframe(processed_df.head(10))
+        
+    with tab3:
+        if st.button("Generate Strategic Analysis"):
+            with st.spinner("AI analyzing metrics..."):
+                stats = processed_df.describe().to_string()
+                prompt = f"As a consultant, provide 3 strategic recommendations for a CEO based on this data summary: {stats}"
+                recommendations = ai_agent.generate_response(prompt)
+                st.success(recommendations)
