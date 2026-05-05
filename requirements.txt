@@ -3,6 +3,7 @@ pandas==2.2.1
 numpy==1.26.4
 
 # Machine Learning & AI
+--find-links https://download.pytorch.org/whl/cpu/torch_stable.html
 transformers==4.39.3
 torch==2.2.1+cpu
 accelerate==0.28.0
