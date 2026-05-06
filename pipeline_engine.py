@@ -4,33 +4,55 @@ from transformers import pipeline
 
 class TransformationEngine:
     def __init__(self, df: pd.DataFrame):
-        self.df = df
+        self.df = df.copy()
 
     def run_integrity_check(self) -> dict:
-        """Identifies nulls, duplicates, and schema issues."""
         return {
             "Total Rows": len(self.df),
             "Null Values": self.df.isnull().sum().to_dict(),
             "Duplicate Rows": int(self.df.duplicated().sum()),
-            "Schema": self.df.dtypes.apply(lambda x: str(x)).to_dict()
+            "Schema": self.df.dtypes.astype(str).to_dict()
         }
 
-    def apply_business_rules(self) -> pd.DataFrame:
-        """Applies complex multi-column health and risk logic."""
-        # Rule 1: Customer Health Score
-        self.df['Health_Score'] = (
-            (self.df['purchase_count'] * 0.4) + 
-            (self.df['avg_order_value'] * 0.4) + 
-            (self.df['retention_days'] * 0.2)
+    def apply_business_rules(self, mapping: dict) -> pd.DataFrame:
+        """
+        mapping format:
+        {
+            "purchase_count": "col_name or None",
+            "avg_order_value": "col_name or None",
+            "retention_days": "col_name or None"
+        }
+        """
+
+        def get_col(col_name):
+            selected = mapping.get(col_name)
+            if selected and selected in self.df.columns:
+                return self.df[selected]
+            return 0  # fallback
+
+        self.df["Health_Score"] = (
+            get_col("purchase_count") * 0.4 +
+            get_col("avg_order_value") * 0.4 +
+            get_col("retention_days") * 0.2
         ).clip(0, 100)
 
-        # Rule 2: Risk Classification
-        self.df['Risk_Level'] = self.df['Health_Score'].apply(
-            lambda x: 'High' if x < 30 else ('Medium' if x < 70 else 'Low')
+        self.df["Risk_Level"] = self.df["Health_Score"].apply(
+            lambda x: "High" if x < 30 else ("Medium" if x < 70 else "Low")
         )
 
-        # Rule 3: Tiering
-        self.df['Segment'] = pd.qcut(self.df['avg_order_value'], 3, labels=["Budget", "Mid-Tier", "VIP"])
+        if "avg_order_value" in mapping.values():
+            col = mapping["avg_order_value"]
+            if col in self.df.columns:
+                self.df["Segment"] = pd.qcut(
+                    self.df[col],
+                    3,
+                    labels=["Budget", "Mid-Tier", "VIP"]
+                )
+            else:
+                self.df["Segment"] = "Unknown"
+        else:
+            self.df["Segment"] = "Unknown"
+
         return self.df
 
 class AIAgent:
