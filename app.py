@@ -12,10 +12,20 @@ def get_ai_agent():
 
 ai_agent = get_ai_agent()
 
-uploaded_file = st.file_uploader("Upload Retail/Financial Dataset (CSV)", type="csv")
+uploaded_file = st.file_uploader("Upload Retail/Financial Dataset (CSV)", type=["csv", "xlsx"])
 
 if uploaded_file:
-    df = pd.read_csv(uploaded_file)
+    file_name = uploaded_file.name.lower()
+
+    if file_name.endswith(".csv"):
+        df = pd.read_csv(uploaded_file)
+
+    elif file_name.endswith(".xlsx"):
+        df = pd.read_excel(uploaded_file, engine="openpyxl")
+
+    else:
+        st.error("Unsupported file format")
+        st.stop()
     engine = TransformationEngine(df)
     
     tab1, tab2, tab3 = st.tabs(["Governance Report", "Business Transformation", "AI Strategy"])
