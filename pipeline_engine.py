@@ -1,6 +1,7 @@
 import pandas as pd
 import torch
 from transformers import pipeline
+from ydata_profiling import ProfileReport
 
 class TransformationEngine:
     def __init__(self, df: pd.DataFrame):
@@ -36,12 +37,10 @@ class TransformationEngine:
 class AIAgent:
     def __init__(self):
         # Optimized for Streamlit Cloud (CPU-friendly)[cite: 2]
-        self.model_id = "microsoft/Phi-3-mini-4k-instruct"
+        self.model_id = "distilgpt2"
         self.pipe = pipeline(
             "text-generation", 
-            model=self.model_id, 
-            device_map="auto",
-            torch_dtype="auto"
+            model=self.model_id
         )
 
     def generate_response(self, prompt: str) -> str:
