@@ -32,7 +32,11 @@ if uploaded_file:
     with tab3:
         if st.button("Generate Strategic Analysis"):
             with st.spinner("AI analyzing metrics..."):
-                stats = processed_df.describe().to_string()
+                summary = {
+                            "avg_order_value_mean": processed_df["avg_order_value"].mean(),
+                            "high_risk_pct": (processed_df["Risk_Level"] == "High").mean(),
+                            "vip_customers": (processed_df["Segment"] == "VIP").sum()
+                        }
                 prompt = f"As a consultant, provide 3 strategic recommendations for a CEO based on this data summary: {stats}"
                 recommendations = ai_agent.generate_response(prompt)
                 st.success(recommendations)
