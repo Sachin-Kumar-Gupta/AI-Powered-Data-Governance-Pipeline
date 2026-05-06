@@ -21,7 +21,7 @@ if uploaded_file:
         df = pd.read_csv(uploaded_file)
 
     elif file_name.endswith(".xlsx"):
-        df = pd.read_excel(uploaded_file, engine="openpyxl")
+        df = pd.read_excel(uploaded_file)
 
     else:
         st.error("Unsupported file format")
