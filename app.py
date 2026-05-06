@@ -1,18 +1,17 @@
 import streamlit as st
 import pandas as pd
-from pipeline_engine import TransformationEngine, AIAgent
+from pipeline_engine import TransformationEngine
 
 st.set_page_config(page_title="Data Governance Pipeline", layout="wide")
 st.title("🚀 AI-Powered Data Governance & Insight Pipeline")
 
-# Initialize AI Agent once and cache it[cite: 2]
-@st.cache_resource
-def get_ai_agent():
-    return AIAgent()
+# ---------- File Upload ----------
+uploaded_file = st.file_uploader(
+    "Upload Dataset (CSV or XLSX)",
+    type=["csv", "xlsx"]
+)
 
-ai_agent = get_ai_agent()
-
-uploaded_file = st.file_uploader("Upload Retail/Financial Dataset (CSV)", type=["csv", "xlsx"])
+df = None
 
 if uploaded_file:
     file_name = uploaded_file.name.lower()
@@ -26,27 +25,54 @@ if uploaded_file:
     else:
         st.error("Unsupported file format")
         st.stop()
+
     engine = TransformationEngine(df)
-    
-    tab1, tab2, tab3 = st.tabs(["Governance Report", "Business Transformation", "AI Strategy"])
-    
+
+    tab1, tab2, tab3 = st.tabs([
+        "Governance Report",
+        "Schema Mapping",
+        "Business Insights"
+    ])
+
+    # ---------------- TAB 1 ----------------
     with tab1:
         st.subheader("📋 Data Integrity Report")
         st.json(engine.run_integrity_check())
-        
+
+        st.write("Preview Data")
+        st.dataframe(df.head())
+
+    # ---------------- TAB 2 (Schema Mapping) ----------------
     with tab2:
-        st.subheader("⚙️ Transformed Data")
-        processed_df = engine.apply_business_rules()
-        st.dataframe(processed_df.head(10))
-        
+        st.subheader("🔗 Schema Mapping Layer")
+
+        columns = ["None"] + df.columns.tolist()
+
+        purchase_col = st.selectbox("Map Purchase Count", columns)
+        avg_order_col = st.selectbox("Map Avg Order Value", columns)
+        retention_col = st.selectbox("Map Retention Days", columns)
+
+        mapping = {
+            "purchase_count": purchase_col,
+            "avg_order_value": avg_order_col,
+            "retention_days": retention_col
+        }
+
+        st.session_state["mapping"] = mapping
+
+        st.info("Mapping saved. Go to Business Insights tab.")
+
+    # ---------------- TAB 3 ----------------
     with tab3:
-        if st.button("Generate Strategic Analysis"):
-            with st.spinner("AI analyzing metrics..."):
-                summary = {
-                            "avg_order_value_mean": processed_df["avg_order_value"].mean(),
-                            "high_risk_pct": (processed_df["Risk_Level"] == "High").mean(),
-                            "vip_customers": (processed_df["Segment"] == "VIP").sum()
-                        }
-                prompt = f"As a consultant, provide 3 strategic recommendations for a CEO based on this data summary: {stats}"
-                recommendations = ai_agent.generate_response(prompt)
-                st.success(recommendations)
+        st.subheader("⚙️ AI Business Transformation")
+
+        if "mapping" not in st.session_state:
+            st.warning("Please configure schema mapping first.")
+            st.stop()
+
+        if st.button("Generate Insights"):
+            processed_df = engine.apply_business_rules(
+                st.session_state["mapping"]
+            )
+
+            st.dataframe(processed_df.head(20))
