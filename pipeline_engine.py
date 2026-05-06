@@ -40,11 +40,12 @@ class AIAgent:
         self.model_id = "distilgpt2"
         self.pipe = pipeline(
             "text-generation", 
-            model=self.model_id
+            model=self.model_id,
+            device = -1
         )
 
     def generate_response(self, prompt: str) -> str:
         """General function to query the local LLM[cite: 2]."""
         messages = [{"role": "user", "content": prompt}]
-        output = self.pipe(messages, max_new_tokens=400, temperature=0.7)
+        output = self.pipe(messages, max_new_tokens=150, temperature=0.7,do_sample=True)
         return output[0]['generated_text']
